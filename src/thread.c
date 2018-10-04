@@ -12,6 +12,7 @@
  * redistribute, and modify it as specified in the 
  * file "LICENSE.txt".
  */
+#include <stdlib.h>
 #include <string.h>
 
 #include <types.h>

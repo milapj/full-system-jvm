@@ -13,6 +13,7 @@
  * file "LICENSE.txt".
  */
 #include <string.h>
+#include <stdlib.h>
 #include <sys/mman.h>
 
 #include <hb_util.h>
