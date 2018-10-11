@@ -928,9 +928,11 @@ handle_swap (u1 * bc, java_class_t * cls) {
 
 static int
 handle_iadd (u1 * bc, java_class_t * cls) {
-  var_t value1 = pop_val();
-  var_t value2 = pop_val();
-  push_val( value1.int_val + value2.int_val);
+  var_t a, b, c;
+  a = pop_val();
+  b = pop_val();
+  c.int_val = a.int_val + b.int_val;
+  push_val(c);
   return 1;
 }
 
@@ -966,9 +968,9 @@ handle_dadd (u1 * bc, java_class_t * cls) {
 
 // WRITE ME
 static int
-handle_isub (u1 * bc, java_class_t * cls) {
-	HB_ERR("%s NOT IMPLEMENTED\n", __func__);
-	return -1;
+handle_isub (u1 * bc, java_class_t * cls){
+  var_t a, b, c;
+
 }
 
 static int
