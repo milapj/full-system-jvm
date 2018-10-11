@@ -970,7 +970,11 @@ handle_dadd (u1 * bc, java_class_t * cls) {
 static int
 handle_isub (u1 * bc, java_class_t * cls){
   var_t a, b, c;
-
+  a = pop_val();
+  b = pop_val();
+  c.int_val = a.int_val - b.int_val < 0 ? -1*(b.int_val - a.int_val) :  a.int_val - b.int_val;
+  push_val(c);
+  return 1;
 }
 
 static int
