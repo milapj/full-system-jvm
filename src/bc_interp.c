@@ -287,8 +287,11 @@ handle_ldc2_w (u1 * bc, java_class_t * cls) {
 // WRITE ME
 static int
 handle_iload (u1 * bc, java_class_t * cls) {
-	HB_ERR("%s NOT IMPLEMENTED\n", __func__);
-	return -1;
+  stack_frame_t *frame = cur_thread->cur_frame;
+  u1 idx = bc[1];
+  var_t value = frame->locals[idx];
+  push_val(value);
+  return 2;
 }
 
 static int
@@ -330,32 +333,31 @@ handle_aload (u1 * bc, java_class_t * cls) {
 }
 
 
-// WRITE ME
+#define DO_ILOADN(n) \
+  stack_frame_t *frame = cur_thread->cur_frame; \
+  push_val(frame->locals[n]); \
+  return 1;
 static int
 handle_iload_0 (u1 * bc, java_class_t * cls) {
-	HB_ERR("%s NOT IMPLEMENTED\n", __func__);
-	return -1;
+  DO_ILOADN(0);
 }
 
 // WRITE ME
 static int
 handle_iload_1 (u1 * bc, java_class_t * cls) {
-	HB_ERR("%s NOT IMPLEMENTED\n", __func__);
-	return -1;
+  DO_ILOADN(1);
 }
 
 // WRITE ME
 static int
 handle_iload_2 (u1 * bc, java_class_t * cls) {
-	HB_ERR("%s NOT IMPLEMENTED\n", __func__);
-	return -1;
+  DO_ILOADN(2);
 }
 
 // WRITE ME
 static int
 handle_iload_3 (u1 * bc, java_class_t * cls) {
-	HB_ERR("%s NOT IMPLEMENTED\n", __func__);
-	return -1;
+  DO_ILOADN(3);
 }
 
 #define DO_LLOADN(n) \
@@ -574,8 +576,11 @@ handle_saload (u1 * bc, java_class_t * cls) {
 // WRITE ME
 static int
 handle_istore (u1 * bc, java_class_t * cls) {
-	HB_ERR("%s NOT IMPLEMENTED\n", __func__);
-	return -1;
+  stack_frame_t *frame = cur_thread->cur_frame;
+  var_t value = pop_val();
+  u1 idx = bc[1];
+  frame->locals[idx].int_val = value.int_val;
+  return 2;
 }
 
 static int
@@ -616,33 +621,34 @@ handle_astore (u1 * bc, java_class_t * cls) {
 	
 	return 2;
 }
+#define DO_ISTOREN(n) \
+  stack_frame_t *frame = cur_thread->cur_frame; \
+  var_t value = pop_val(); \
+  frame->locals[n].int_val = value.int_val; \
+  return 1;
 
 // WRITE ME
 static int
 handle_istore_0 (u1 * bc, java_class_t * cls) {
-	HB_ERR("%s NOT IMPLEMENTED\n", __func__);
-	return -1;
+  DO_ISTOREN(0);
 }
 
 // WRITE ME
 static int
 handle_istore_1 (u1 * bc, java_class_t * cls) {
-	HB_ERR("%s NOT IMPLEMENTED\n", __func__);
-	return -1;
+  DO_ISTOREN(1);
 }
 
 // WRITE ME
 static int
 handle_istore_2 (u1 * bc, java_class_t * cls) {
-	HB_ERR("%s NOT IMPLEMENTED\n", __func__);
-	return -1;
+  DO_ISTOREN(2);
 }
 
 // WRITE M
 static int
 handle_istore_3 (u1 * bc, java_class_t * cls) {
-	HB_ERR("%s NOT IMPLEMENTED\n", __func__);
-	return -1;
+  DO_ISTOREN(3);
 }
 
 #define DO_LSTOREN(n) \
