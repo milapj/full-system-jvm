@@ -970,8 +970,8 @@ handle_dadd (u1 * bc, java_class_t * cls) {
 static int
 handle_isub (u1 * bc, java_class_t * cls){
   var_t a, b, c;
-  a = pop_val();
   b = pop_val();
+  a = pop_val();
   c.int_val = a.int_val - b.int_val < 0 ? -1*(b.int_val - a.int_val) :  a.int_val - b.int_val;
   push_val(c);
   return 1;
@@ -1010,8 +1010,20 @@ handle_dsub (u1 * bc, java_class_t * cls) {
 // WRITE ME
 static int
 handle_imul (u1 * bc, java_class_t * cls) {
-	HB_ERR("%s NOT IMPLEMENTED\n", __func__);
-	return -1;
+  var_t a, b, c;
+  int m, v1, v2;
+  b = pop_val();
+  a = pop_val();
+
+  v1 = (int)a.int_val;
+  v2 = (int)b.int_val;
+
+  m = v1*v2;
+
+  c.int_val = (int)m;
+
+  push_val(c);
+  return 1;
 }
 
 static int
