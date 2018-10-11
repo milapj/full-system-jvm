@@ -233,9 +233,6 @@ hb_get_method_idx (const char * name, java_class_t * cls)
  * Resolves a symbolic reference to a class.
  * See Orcale JVM spec 5.4.3.1
  *
- * This will replace a symbolic reference with
- * a direct reference to the class.
- *
  * @return: a pointer to a class structure if we
  * can resolve, NULL otherwise
  *
@@ -246,8 +243,34 @@ hb_get_method_idx (const char * name, java_class_t * cls)
 java_class_t * 
 hb_resolve_class (u2 const_idx, java_class_t * src_cls)
 {
-	HB_ERR("%s UNIMPLEMENTED\n", __func__);
-	return NULL;
+
+  if(!const_idx){
+    HB_ERR("%s UNIMPLEMENTED\n", __func__);
+  }
+  
+  else{
+    const_pool_info_t* const_pool_entry = src_cls->const_pool[const_idx];
+    if( IS_RESOLVED(const_pool_entry) ){
+      src_cls = (java_class_t *)MASK_RESOLVED_BIT(const_pool_entry);
+      return src_cls;
+    }
+
+    const char* class_name = hb_get_const_str(const_idx, src_cls);
+    java_class_t *cls = hb_get_class(class_name);
+
+    if(cls){
+      const_pool_entry = (const_pool_info_t *)MARK_RESOLVED(cls);
+      return cls;
+    }
+    
+    cls = hb_load_class(class_name);
+    hb_add_class(class_name, cls);
+    hb_prep_class(cls);
+    hb_init_class(cls);
+    src_cls->const_pool[const_idx] = (const_pool_info_t *)MARK_RESOLVED(cls);
+    return cls;
+  }
+  return NULL;
 }
 
 
@@ -306,11 +329,11 @@ hb_find_method_by_desc (const char * mname,
 		const char * tnm = hb_get_const_str(nidx, cls);
 		const char * tds = hb_get_const_str(didx, cls);
 		if (strcmp(tnm, mname) == 0 && strcmp(tds, mdesc) == 0) {
-			ret = &cls->methods[i];
-			break;
+		  ret = &cls->methods[i];
+		  break;
 		}
 	}
-
+	
 	// recursive search
 	if (!ret) {
 		java_class_t * super = hb_get_super_class(cls);
@@ -344,10 +367,41 @@ hb_resolve_method (u2 const_idx,
 		   java_class_t * target_cls)
 		       
 {
-	HB_ERR("%s UNIMPLEMENTED\n", __func__);
-	return NULL;
+  CONSTANT_Methodref_info_t *methodref_info;
+  CONSTANT_NameAndType_info_t *nameandtype_info;
+  method_info_t *method = NULL;
+  int i;
+  
+  methodref_info = (CONSTANT_Methodref_info_t *)src_cls->const_pool[const_idx];
+  nameandtype_info = (CONSTANT_NameAndType_info_t *)src_cls->const_pool[methodref_info->name_and_type_idx];
+  u2 class_idx = methodref_info->class_idx;
+
+  if( !IS_RESOLVED(target_cls) && (target_cls = hb_resolve_class(class_idx, src_cls))){
+    HB_ERR("%s target class is not resolved\n", __func__);
+  }
+
+  /* FROM Source class */
+  const char* source_method_name = hb_get_const_str(nameandtype_info->name_idx, src_cls);
+  const char* source_method_desc = hb_get_const_str(nameandtype_info->desc_idx, src_cls);
+  
+  for(i = 0; i < target_cls->methods_count; i++){
+    /* FROM Target class */
+    if( strcmp(source_method_name, hb_get_const_str(target_cls->methods[i].name_idx, target_cls)) &&
+	strcmp(source_method_desc, hb_get_const_str(target_cls->methods[i].desc_idx, target_cls)) ){
+      method = target_cls->methods + i;
+      return method;
+    }
+  }
+  
+  if( !method ){
+    java_class_t *super_cls = hb_get_super_class(target_cls);
+    if(super_cls){
+      method = hb_resolve_method(const_idx, src_cls, super_cls);
+    }
+  }
+  return method;
 }
-		       
+
 
 /* 
  * looks for a matching field in class C from class D (which contains
