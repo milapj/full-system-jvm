@@ -1109,8 +1109,12 @@ handle_drem (u1 * bc, java_class_t * cls) {
 // WRITE ME
 static int
 handle_ineg (u1 * bc, java_class_t * cls) {
-	HB_ERR("%s NOT IMPLEMENTED\n", __func__);
-	return -1;
+  var_t v = pop_val();
+  var_t res;
+  int n = (int)v.int_val;
+  res.int_val = (u4)(-n);
+  push_val(res);
+  return 1;
 }
 
 static int
