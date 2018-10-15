@@ -1858,8 +1858,26 @@ handle_anewarray (u1 * bc, java_class_t * cls) {
 // WRITE ME
 static int
 handle_arraylength (u1 * bc, java_class_t * cls) {
-	HB_ERR("%s NOT IMPLEMENTED\n", __func__);
-	return -1;
+  var_t v = pop_val();
+  obj_ref_t* oref = v.obj;
+  native_obj_t * aref;
+  var_t ret;
+  enum ref_types arr_type = OBJ_ARRAY;
+
+  if(oref->type != arr_type){
+    HB_ERR("%s Array is not of type reference\n", __func__);
+    return -1;
+  }
+
+  if(!oref){
+    hb_throw_and_create_excp(EXCP_NULL_PTR);
+    return -ESHOULD_BRANCH;
+  }
+
+  aref = (native_obj_t *)oref->heap_ptr;
+  ret.int_val = aref->flags.array.length;
+  push_val(ret);
+  return 1;
 }
 
 // WRITE ME
