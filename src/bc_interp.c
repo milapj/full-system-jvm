@@ -1808,8 +1808,27 @@ handle_new (u1 * bc, java_class_t * cls) {
 // WRITE ME
 static int
 handle_newarray (u1 * bc, java_class_t * cls) {
-	HB_ERR("%s NOT IMPLEMENTED\n", __func__);
-	return -1;
+  var_t count = pop_val();
+  if( count.int_val < 0){
+    hb_throw_and_create_excp(EXCP_NEG_ARR_SIZE);
+    return -ESHOULD_BRANCH;
+  }
+  u1 type = (u1)(bc[1]);
+  if( type < 4 && type > 13 ){
+    HB_ERR("Invalid type\n");
+    return -1;
+  }
+  obj_ref_t *oa = NULL;
+  var_t ret;
+
+  oa = gc_array_alloc(type, count.int_val);
+  if(!oa){
+    hb_throw_and_create_excp(EXCP_OOM);
+    return -ESHOULD_BRANCH;
+  }
+  ret.obj = oa;
+  push_val(ret);
+  return 2;
 }
 
 static int
