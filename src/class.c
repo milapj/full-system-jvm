@@ -245,7 +245,7 @@ hb_resolve_class (u2 const_idx, java_class_t * src_cls)
 {
 
   if(!const_idx){
-    HB_ERR("%s UNIMPLEMENTED\n", __func__);
+    return NULL;
   }
   
   else{
@@ -254,8 +254,8 @@ hb_resolve_class (u2 const_idx, java_class_t * src_cls)
       src_cls = (java_class_t *)MASK_RESOLVED_BIT(const_pool_entry);
       return src_cls;
     }
-
-    const char* class_name = hb_get_const_str(const_idx, src_cls);
+    CONSTANT_Class_info_t *const_class = (CONSTANT_Class_info_t *)src_cls->const_pool[const_idx];
+    const char* class_name = hb_get_const_str(const_class->name_idx, src_cls);
     java_class_t *cls = hb_get_class(class_name);
 
     if(cls){
