@@ -1818,8 +1818,10 @@ handle_arraylength (u1 * bc, java_class_t * cls) {
 // WRITE ME
 static int
 handle_athrow (u1 * bc, java_class_t * cls) {
-	HB_ERR("%s NOT IMPLEMENTED\n", __func__);
-	return -1;
+  var_t val = pop_val();
+  obj_ref_t *oref = val.obj;
+  hb_throw_exception(oref);
+  return 1;
 }
 
 static int
