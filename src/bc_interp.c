@@ -335,6 +335,8 @@ handle_aload (u1 * bc, java_class_t * cls) {
 
 #define DO_ILOADN(n) \
   stack_frame_t *frame = cur_thread->cur_frame; \
+  var_t v;\
+  v.int_val = frame->locals[n].int_val;		\
   push_val(frame->locals[n]); \
   return 1;
 static int
