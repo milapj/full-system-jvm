@@ -13,7 +13,7 @@
  * file "LICENSE.txt".
  */
 #include <stdlib.h>
-
+#include <string.h>
 #include <types.h>
 #include <class.h>
 #include <stack.h>
@@ -23,8 +23,17 @@
 #include <bc_interp.h>
 #include <gc.h>
 
-extern jthread_t * cur_thread;
 
+extern jthread_t * cur_thread;
+_Bool in_range(u2, u2, u2);
+/* 
+ * Check the interval
+ * low is inclusive and high is exclusive
+ */
+_Bool
+in_range(u2 low, u2 high, u2 pc){
+  return ((pc-high)*(pc-low)) < 0;
+}
 /* 
  * Maps internal exception identifiers to fully
  * qualified class paths for the exception classes.
@@ -71,8 +80,11 @@ static const char * excp_strs[16] __attribute__((used)) =
 void
 hb_throw_and_create_excp (u1 type)
 {
-	HB_ERR("%s UNIMPLEMENTED\n", __func__);
-	exit(EXIT_FAILURE);
+  java_class_t *class_of_exception = hb_get_or_load_class(excp_strs[type]);
+  obj_ref_t *object_of_class = gc_obj_alloc(class_of_exception);
+  hb_invoke_ctor(object_of_class);
+  hb_throw_exception(object_of_class);
+  return;
 }
 
 
@@ -137,6 +149,44 @@ get_excp_str (obj_ref_t * eref)
 void
 hb_throw_exception (obj_ref_t * eref)
 {
-	HB_ERR("%s UNIMPLEMENTED\n", __func__);
-	exit(EXIT_FAILURE);
+
+  native_obj_t *native_object = (native_obj_t *)(eref->heap_ptr);
+  java_class_t *class_of_object = (native_object->class);
+  if(!class_of_object){
+    exit(EXIT_FAILURE);
+  }
+
+  const char *class_name_of_object = hb_get_class_name(class_of_object);
+  // In the simple case, the class_name_of_object is ArithmeticException
+
+  method_info_t *method_info = cur_thread->cur_frame->minfo;
+  excp_table_t *exception_table = method_info->code_attr->excp_table;
+  u2 exception_table_length = method_info->code_attr->excp_table_len;
+  u2 i;
+
+  for(i = 0; i < exception_table_length; i++){
+    u2 catch_type_index = exception_table[i].catch_type; // exception type?
+    CONSTANT_Class_info_t *class_of_exception_caught_by_handler = (CONSTANT_Class_info_t *)class_of_object->const_pool[catch_type_index];
+    //    u2 name_index = class_of_exception_caught_by_handler->name_idx;
+    u2 low = exception_table[i].start_pc;
+    u2 high= exception_table[i].end_pc;
+    u2 pc = cur_thread->cur_frame->pc;
+    //    const char* exception_type = hb_get_const_str(name_index, class_of_object);
+    if( in_range(low,high,pc)/* && !strcmp(exception_type, class_name_of_object)*/){
+      // If found, the system branches to the exception handling code
+      var_t v;
+      v.obj = eref;
+      op_stack_t *stack = cur_thread->cur_frame->op_stack;
+      stack->oprs[++(stack->sp)] = v;
+      cur_thread->cur_frame->pc = exception_table[i].handler_pc;
+      hb_exec(cur_thread);
+      return;
+    }
+  }
+  // Otherwise, pop a frame and continue searching -> How ? Recursively
+  hb_pop_frame(cur_thread);
+  if(!cur_thread->cur_frame){
+    exit(EXIT_FAILURE);
+  }
+  hb_throw_exception(eref);
 }
