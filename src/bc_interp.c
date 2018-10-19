@@ -1933,7 +1933,12 @@ static int
 handle_athrow (u1 * bc, java_class_t * cls) {
   var_t val = pop_val();
   obj_ref_t *oref = val.obj;
-  hb_throw_exception(oref);
+  if(!oref){
+    hb_throw_and_create_excp(EXCP_NULL_PTR);
+    exit(EXIT_FAILURE);
+  } else{
+    hb_throw_exception(oref);
+  }
   return 1;
 }
 
