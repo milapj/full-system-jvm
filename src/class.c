@@ -376,8 +376,8 @@ hb_resolve_method (u2 const_idx,
   nameandtype_info = (CONSTANT_NameAndType_info_t *)src_cls->const_pool[methodref_info->name_and_type_idx];
   u2 class_idx = methodref_info->class_idx;
 
-  if( !IS_RESOLVED(target_cls) && (target_cls = hb_resolve_class(class_idx, src_cls))){
-    HB_ERR("%s target class is not resolved\n", __func__);
+  if( !IS_RESOLVED(target_cls)){
+    target_cls = hb_resolve_class(class_idx, src_cls);
   }
 
   /* FROM Source class */
