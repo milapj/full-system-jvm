@@ -1099,8 +1099,22 @@ handle_ddiv (u1 * bc, java_class_t * cls) {
 // WRITE ME
 static int
 handle_irem (u1 * bc, java_class_t * cls) {
-	HB_ERR("%s NOT IMPLEMENTED\n", __func__);
-	return -1;
+  var_t a,b,c;
+  int m,v1,v2;
+  b = pop_val();
+  a = pop_val();
+
+  v1 = a.int_val;
+  v2 = b.int_val;
+  if(!v2){
+    hb_throw_and_create_excp(EXCP_ARITH);
+    return -ESHOULD_BRANCH;
+  }
+  m = v1-(v1/v2);
+  c.int_val = (u4)m;
+
+  push_val(c);
+  return 1;
 }
 
 static int
