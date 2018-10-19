@@ -247,7 +247,7 @@ hb_resolve_class (u2 const_idx, java_class_t * src_cls)
   if(!const_idx){
     return NULL;
   }
-  
+
   else{
     const_pool_info_t* const_pool_entry = src_cls->const_pool[const_idx];
     if( IS_RESOLVED(const_pool_entry) ){
@@ -386,9 +386,9 @@ hb_resolve_method (u2 const_idx,
   
   for(i = 0; i < target_cls->methods_count; i++){
     /* FROM Target class */
-    if( strcmp(source_method_name, hb_get_const_str(target_cls->methods[i].name_idx, target_cls)) &&
-	strcmp(source_method_desc, hb_get_const_str(target_cls->methods[i].desc_idx, target_cls)) ){
-      method = target_cls->methods + i;
+    if( !strcmp(source_method_name, hb_get_const_str(target_cls->methods[i].name_idx, target_cls)) &&
+	!strcmp(source_method_desc, hb_get_const_str(target_cls->methods[i].desc_idx, target_cls)) ){
+      method = target_cls->methods+i;
       return method;
     }
   }
