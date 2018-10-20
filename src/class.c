@@ -56,15 +56,14 @@ hb_get_const_str (u2 idx, java_class_t * cls)
 	} 
 
 	if (cls->const_pool[idx]->tag != CONSTANT_Utf8) {
-		HB_ERR("Non-UTF8 constant in %s (type = %d)\n", __func__,
-			cls->const_pool[idx]->tag);
+	  HB_ERR("Non-UTF8 constant in %s (type = %d)\n", __func__,
+		 cls->const_pool[idx]->tag);
 		return NULL;
 	}
 
+
 	u = (CONSTANT_Utf8_info_t*)cls->const_pool[idx];
-
 	cls->const_pool[idx] = (const_pool_info_t*)MARK_RESOLVED(u->bytes);
-
 	return (char*)u->bytes;
 }
 
@@ -376,7 +375,7 @@ hb_resolve_method (u2 const_idx,
   nameandtype_info = (CONSTANT_NameAndType_info_t *)src_cls->const_pool[methodref_info->name_and_type_idx];
   u2 class_idx = methodref_info->class_idx;
 
-  if( !IS_RESOLVED(target_cls)){
+  if( !target_cls){
     target_cls = hb_resolve_class(class_idx, src_cls);
   }
 
