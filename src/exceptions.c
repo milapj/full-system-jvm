@@ -149,7 +149,6 @@ get_excp_str (obj_ref_t * eref)
 void
 hb_throw_exception (obj_ref_t * eref)
 {
-
   native_obj_t *native_object = (native_obj_t *)(eref->heap_ptr);
   java_class_t *class_of_object = (native_object->class);
   if(!class_of_object){
@@ -163,17 +162,15 @@ hb_throw_exception (obj_ref_t * eref)
   excp_table_t *exception_table = method_info->code_attr->excp_table;
   u2 exception_table_length = method_info->code_attr->excp_table_len;
   u2 i;
-
   for(i = 0; i < exception_table_length; i++){
-    u2 catch_type_index = exception_table[i].catch_type; // exception type?
+    u2 catch_type_index = exception_table[i].catch_type;
     CONSTANT_Class_info_t *class_of_exception_caught_by_handler = (CONSTANT_Class_info_t *)class_of_object->const_pool[catch_type_index];
-    //    u2 name_index = class_of_exception_caught_by_handler->name_idx;
+    u2 name_index = class_of_exception_caught_by_handler->name_idx;
     u2 low = exception_table[i].start_pc;
     u2 high= exception_table[i].end_pc;
     u2 pc = cur_thread->cur_frame->pc;
-    //    const char* exception_type = hb_get_const_str(name_index, class_of_object);
-    if( in_range(low,high,pc)/* && !strcmp(exception_type, class_name_of_object)*/){
-      // If found, the system branches to the exception handling code
+    const char* exception_type = hb_get_const_str(name_index, class_of_object);
+    if( in_range(low,high,pc) && !strcmp(exception_type, class_name_of_object)){
       var_t v;
       v.obj = eref;
       op_stack_t *stack = cur_thread->cur_frame->op_stack;
@@ -186,6 +183,7 @@ hb_throw_exception (obj_ref_t * eref)
   // Otherwise, pop a frame and continue searching -> How ? Recursively
   hb_pop_frame(cur_thread);
   if(!cur_thread->cur_frame){
+    hb_throw_and_create_excp(EXCP_NULL_PTR);
     exit(EXIT_FAILURE);
   }
   hb_throw_exception(eref);
