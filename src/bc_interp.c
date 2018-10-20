@@ -1939,7 +1939,7 @@ handle_athrow (u1 * bc, java_class_t * cls) {
   } else{
     hb_throw_exception(oref);
   }
-  return 1;
+  return 0;
 }
 
 static int
