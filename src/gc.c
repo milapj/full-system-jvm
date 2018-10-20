@@ -434,8 +434,17 @@ mark_ref (obj_ref_t * ref, gc_state_t * state)
 static int
 scan_base_obj (gc_state_t * gc_state, void * priv_data)
 {
-	HB_ERR("%s UNIMPLEMENTED\n", __func__);
-	return 0;
+  native_obj_t *obj = (native_obj_t *)priv_data;
+  u2 field_count = obj->field_count;
+  u2 i;
+
+  for(i = 0; i < field_count; i++){
+    obj_ref_t *ref = obj->fields[i].obj;
+    if(is_valid_ref(ref, gc_state)){
+      mark_ref(ref, gc_state);
+    }
+  }
+  return 0;
 }
 
 
