@@ -455,8 +455,26 @@ scan_base_obj (gc_state_t * gc_state, void * priv_data)
 static int
 scan_base_frame (gc_state_t * gc_state, void * priv_data)
 {
-	HB_ERR("%s UNIMPLEMENTED\n", __func__);
-	return 0;
+  stack_frame_t *frame = (stack_frame_t *)priv_data;
+  while(!frame){
+    u4 i;
+    for(i = 0; i < frame->max_locals; i++){
+      if(is_valid_ref(frame->locals[i].obj, gc_state)){
+	mark_ref(frame->locals[i].obj, gc_state);
+      }
+    }
+    op_stack_t *op_stack = frame->op_stack;
+    int current_sp = op_stack->sp;
+    while(!op_stack->oprs[op_stack->sp].obj){
+      if(is_valid_ref(op_stack->oprs[op_stack->sp].obj, gc_state)){
+	mark_ref(op_stack->oprs[op_stack->sp].obj, gc_state);
+      }
+      op_stack->sp--;
+    }
+    op_stack->sp = current_sp;
+    frame = frame->next;
+  }
+  return 0;
 }
 
 
