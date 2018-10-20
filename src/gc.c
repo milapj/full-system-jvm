@@ -275,8 +275,24 @@ gc_obj_alloc (java_class_t * cls)
 static int 
 sweep (gc_state_t * state)
 {
-	HB_ERR("%s UNIMPLEMENTED\n", __func__);
-	return 0;
+  struct nk_hashtable_iter *iter = nk_create_htable_iter(state->ref_tbl->htable);
+  if(!iter){
+    HB_ERR("Could not create an interator of the reference table \n");
+    return -1;
+  }
+  do{
+    ref_entry_t *entry = (ref_entry_t *)nk_htable_get_iter_value(iter);
+    if(entry && entry->state == GC_REF_ABSENT){
+      obj_ref_t *obj = (obj_ref_t *)nk_htable_get_iter_key(iter);
+      native_obj_t *n_obj = (native_obj_t *)obj->heap_ptr;
+      nk_htable_remove(state->ref_tbl->htable, (unsigned long)n_obj, 0);
+      object_free(n_obj);
+      state->collect_stats.bytes_reclaimed += sizeof(n_obj);
+      state->collect_stats.obj_collected++;
+    }
+  } while( nk_htable_iter_advance(iter) != 0);
+  nk_destroy_htable_iter(iter);
+  return 0;
 }
 
 
