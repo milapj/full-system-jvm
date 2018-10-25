@@ -335,6 +335,8 @@ handle_aload (u1 * bc, java_class_t * cls) {
 
 #define DO_ILOADN(n) \
   stack_frame_t *frame = cur_thread->cur_frame; \
+  var_t v;\
+  v.int_val = frame->locals[n].int_val;		\
   push_val(frame->locals[n]); \
   return 1;
 static int
@@ -1059,8 +1061,21 @@ handle_dmul (u1 * bc, java_class_t * cls) {
 // WRITE ME
 static int
 handle_idiv (u1 * bc, java_class_t * cls) {
-	HB_ERR("%s NOT IMPLEMENTED\n", __func__);
-	return -1;
+  var_t a,b,c;
+  int m,v1,v2;
+  b = pop_val();
+  a = pop_val();
+
+  v1 = (int)a.int_val;
+  v2 = (int)b.int_val;
+  if(!v2){
+    hb_throw_and_create_excp(EXCP_ARITH);
+    return -ESHOULD_BRANCH;
+  }
+  m = v1/v2;
+  c.int_val = m;
+  push_val(c);
+  return 1;
 }
 
 static int
@@ -1084,8 +1099,22 @@ handle_ddiv (u1 * bc, java_class_t * cls) {
 // WRITE ME
 static int
 handle_irem (u1 * bc, java_class_t * cls) {
-	HB_ERR("%s NOT IMPLEMENTED\n", __func__);
-	return -1;
+  var_t a,b,c;
+  int m,v1,v2;
+  b = pop_val();
+  a = pop_val();
+
+  v1 = a.int_val;
+  v2 = b.int_val;
+  if(!v2){
+    hb_throw_and_create_excp(EXCP_ARITH);
+    return -ESHOULD_BRANCH;
+  }
+  m = v1-(v1/v2);
+  c.int_val = (u4)m;
+
+  push_val(c);
+  return 1;
 }
 
 static int
@@ -1904,8 +1933,13 @@ static int
 handle_athrow (u1 * bc, java_class_t * cls) {
   var_t val = pop_val();
   obj_ref_t *oref = val.obj;
-  hb_throw_exception(oref);
-  return 1;
+  if(!oref){
+    hb_throw_and_create_excp(EXCP_NULL_PTR);
+    exit(EXIT_FAILURE);
+  } else{
+    hb_throw_exception(oref);
+  }
+  return 0;
 }
 
 static int

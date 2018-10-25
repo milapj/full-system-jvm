@@ -56,15 +56,14 @@ hb_get_const_str (u2 idx, java_class_t * cls)
 	} 
 
 	if (cls->const_pool[idx]->tag != CONSTANT_Utf8) {
-		HB_ERR("Non-UTF8 constant in %s (type = %d)\n", __func__,
-			cls->const_pool[idx]->tag);
+	  HB_ERR("Non-UTF8 constant in %s (type = %d)\n", __func__,
+		 cls->const_pool[idx]->tag);
 		return NULL;
 	}
 
+
 	u = (CONSTANT_Utf8_info_t*)cls->const_pool[idx];
-
 	cls->const_pool[idx] = (const_pool_info_t*)MARK_RESOLVED(u->bytes);
-
 	return (char*)u->bytes;
 }
 
@@ -245,7 +244,7 @@ hb_resolve_class (u2 const_idx, java_class_t * src_cls)
 {
 
   if(!const_idx){
-    HB_ERR("%s UNIMPLEMENTED\n", __func__);
+    return NULL;
   }
   if(const_idx > src_cls -> const_pool_count) {
 	  printf("OUT OF BOUND");
@@ -256,8 +255,8 @@ hb_resolve_class (u2 const_idx, java_class_t * src_cls)
       src_cls = (java_class_t *)MASK_RESOLVED_BIT(const_pool_entry);
       return src_cls;
     }
-
-    const char* class_name = hb_get_const_str(const_idx, src_cls);
+    CONSTANT_Class_info_t *const_class = (CONSTANT_Class_info_t *)src_cls->const_pool[const_idx];
+    const char* class_name = hb_get_const_str(const_class->name_idx, src_cls);
     java_class_t *cls = hb_get_class(class_name);
 
     if(cls){
@@ -378,8 +377,8 @@ hb_resolve_method (u2 const_idx,
   nameandtype_info = (CONSTANT_NameAndType_info_t *)src_cls->const_pool[methodref_info->name_and_type_idx];
   u2 class_idx = methodref_info->class_idx;
 
-  if( !IS_RESOLVED(target_cls) && (target_cls = hb_resolve_class(class_idx, src_cls))){
-    HB_ERR("%s target class is not resolved\n", __func__);
+  if( !target_cls){
+    target_cls = hb_resolve_class(class_idx, src_cls);
   }
 
   /* FROM Source class */
@@ -388,9 +387,9 @@ hb_resolve_method (u2 const_idx,
   
   for(i = 0; i < target_cls->methods_count; i++){
     /* FROM Target class */
-    if( strcmp(source_method_name, hb_get_const_str(target_cls->methods[i].name_idx, target_cls)) &&
-	strcmp(source_method_desc, hb_get_const_str(target_cls->methods[i].desc_idx, target_cls)) ){
-      method = target_cls->methods + i;
+    if( !strcmp(source_method_name, hb_get_const_str(target_cls->methods[i].name_idx, target_cls)) &&
+	!strcmp(source_method_desc, hb_get_const_str(target_cls->methods[i].desc_idx, target_cls)) ){
+      method = target_cls->methods+i;
       return method;
     }
   }
