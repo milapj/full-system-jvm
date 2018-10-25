@@ -246,7 +246,9 @@ hb_resolve_class (u2 const_idx, java_class_t * src_cls)
   if(!const_idx){
     return NULL;
   }
-
+  if(const_idx > src_cls -> const_pool_count) {
+	  printf("OUT OF BOUND");
+  }
   else{
     const_pool_info_t* const_pool_entry = src_cls->const_pool[const_idx];
     if( IS_RESOLVED(const_pool_entry) ){
