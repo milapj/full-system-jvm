@@ -502,9 +502,37 @@ scan_base_frame (gc_state_t * gc_state, void * priv_data)
 static int
 scan_class_map (gc_state_t * gc_state, void * priv_data)
 {
+	
+  struct nk_hashtable *class_map = (struct nk_hashtable *)priv_data;
+  struct nk_hashtable_iter *iter = nk_create_htable_iter(class_map);
+  u2 i;
+  u2 static_fields_count = 0;
 
-	HB_ERR("%s UNIMPLEMENTED\n", __func__);
-	return 0;
+  if(!iter){
+    HB_ERR("Could not create ref table iterator in %s\n", __func__);
+    return -1;
+  }
+
+  do {
+    ref_entry_t *entry = (ref_entry_t *)nk_htable_get_iter_value(iter);
+    if(entry){
+      java_class_t *class_of_object = (java_class_t *)entry;
+      for(i = 0 ; i < class_of_object->fields_count; i++){
+        if( class_of_object->fields[i].acc_flags == ACC_STATIC ){
+          static_fields_count++;
+        }
+      }
+      for(i = 0; i < static_fields_count; i++){
+        if( is_valid_ref(class_of_object->field_vals[i].obj, gc_state) ){
+          mark_ref(class_of_object->field_vals[i].obj, gc_state);
+        }
+      }
+    }
+  } while( nk_htable_iter_advance(iter) != 0);
+  nk_destroy_htable_iter(iter);
+
+  return 0;
+	
 }
 
 
