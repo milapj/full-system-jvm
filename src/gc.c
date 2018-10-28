@@ -275,6 +275,7 @@ static int
 sweep (gc_state_t * state)
 {
   struct nk_hashtable_iter *iter = nk_create_htable_iter(state->ref_tbl->htable);
+  static int count = 0;
   if(!iter){
     HB_ERR("Could not create an interator of the reference table \n");
     return -1;
@@ -285,11 +286,11 @@ sweep (gc_state_t * state)
       obj_ref_t *ref = (obj_ref_t *)nk_htable_get_iter_key(iter);
       native_obj_t *n_obj = (native_obj_t *)ref->heap_ptr;
       object_free(n_obj);
+      count++;
       ref_tbl_remove_ref(ref);
-      state->collect_stats.obj_collected++;
     }
+    state->collect_stats.obj_collected = count;
    } while( nk_htable_iter_advance(iter) != 0);
-
   nk_destroy_htable_iter(iter);
   return 0;
 }
