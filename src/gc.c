@@ -150,8 +150,7 @@ clear_ref_tbl (gc_state_t * state)
 	}
 
 	do {
-		ref_entry_t * entry = (ref_entry_t*)nk_htable_get_iter_value(iter);
-
+	       	ref_entry_t * entry = (ref_entry_t *)nk_htable_get_iter_value(iter);
 		if (entry) {
 			entry->state = GC_REF_ABSENT;
 		}
@@ -283,14 +282,14 @@ sweep (gc_state_t * state)
   do{
     ref_entry_t *entry = (ref_entry_t *)nk_htable_get_iter_value(iter);
     if(entry && entry->state == GC_REF_ABSENT){
-      obj_ref_t *obj = (obj_ref_t *)nk_htable_get_iter_key(iter);
-      native_obj_t *n_obj = (native_obj_t *)obj->heap_ptr;
-      nk_htable_remove(state->ref_tbl->htable, (unsigned long)n_obj, 0);
+      obj_ref_t *ref = (obj_ref_t *)nk_htable_get_iter_key(iter);
+      native_obj_t *n_obj = (native_obj_t *)ref->heap_ptr;
       object_free(n_obj);
-      state->collect_stats.bytes_reclaimed += sizeof(n_obj);
+      ref_tbl_remove_ref(ref);
       state->collect_stats.obj_collected++;
     }
-  } while( nk_htable_iter_advance(iter) != 0);
+   } while( nk_htable_iter_advance(iter) != 0);
+
   nk_destroy_htable_iter(iter);
   return 0;
 }
@@ -472,7 +471,7 @@ static int
 scan_base_frame (gc_state_t * gc_state, void * priv_data)
 {
   stack_frame_t *frame = (stack_frame_t *)priv_data;
-  while(!frame){
+  while(frame){
     u4 i;
     for(i = 0; i < frame->max_locals; i++){
       if(is_valid_ref(frame->locals[i].obj, gc_state)){
@@ -481,10 +480,12 @@ scan_base_frame (gc_state_t * gc_state, void * priv_data)
     }
     op_stack_t *op_stack = frame->op_stack;
     int current_sp = op_stack->sp;
-    while(!op_stack->oprs[op_stack->sp].obj){
+    while(op_stack->oprs[op_stack->sp].obj){
+
       if(is_valid_ref(op_stack->oprs[op_stack->sp].obj, gc_state)){
 	mark_ref(op_stack->oprs[op_stack->sp].obj, gc_state);
       }
+
       op_stack->sp--;
     }
     op_stack->sp = current_sp;
@@ -492,7 +493,6 @@ scan_base_frame (gc_state_t * gc_state, void * priv_data)
   }
   return 0;
 }
-
 
 /*
  * Scan the static fields for all classes that
@@ -513,9 +513,8 @@ scan_class_map (gc_state_t * gc_state, void * priv_data)
   }
 
   do {
-    ref_entry_t *entry = (ref_entry_t *)nk_htable_get_iter_value(iter);
-    if(entry){
-      java_class_t *class_of_object = (java_class_t *)entry;
+    java_class_t *class_of_object = (java_class_t *)nk_htable_get_iter_value(iter);
+    if(class_of_object){
       for(i = 0 ; i < class_of_object->fields_count; i++){
 	if( class_of_object->fields[i].acc_flags == ACC_STATIC ){
 	  static_fields_count++;
@@ -529,7 +528,7 @@ scan_class_map (gc_state_t * gc_state, void * priv_data)
     }
   } while( nk_htable_iter_advance(iter) != 0);
   nk_destroy_htable_iter(iter);
-
+  
   return 0;
 }
 
