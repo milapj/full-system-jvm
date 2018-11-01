@@ -164,6 +164,7 @@ hb_throw_exception (obj_ref_t * eref)
   excp_table_t *exception_table = method_info->code_attr->excp_table;
   u2 exception_table_length = method_info->code_attr->excp_table_len;
   u2 i;
+  HB_ERR("Exception in thread %s %s at %s\n", cur_thread->name, class_name_of_object,hb_get_class_name(cur_thread->class) );
   for(i = 0; i < exception_table_length; i++){
     u2 catch_type_index = exception_table[i].catch_type;
     CONSTANT_Class_info_t *class_of_exception_caught_by_handler = (CONSTANT_Class_info_t *)class_of_object->const_pool[catch_type_index];
