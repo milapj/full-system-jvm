@@ -285,7 +285,7 @@ sweep (gc_state_t * state)
     if(entry && entry->state == GC_REF_ABSENT){
       obj_ref_t *ref = (obj_ref_t *)nk_htable_get_iter_key(iter);
       native_obj_t *n_obj = (native_obj_t *)ref->heap_ptr;
-      object_free(n_obj);
+    //  object_free(n_obj);
       count++;
       ref_tbl_remove_ref(ref);
     }
